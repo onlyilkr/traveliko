@@ -1,0 +1,48 @@
+{
+  "name": "travel-with-friends",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint",
+    "release": "release-it"
+  },
+  "dependencies": {
+    "@googlemaps/js-api-loader": "^1.11.4",
+    "bootstrap-vue": "^2.21.2",
+    "core-js": "^3.12.0",
+    "dns": "^0.2.2",
+    "firebase": "^8.5.0",
+    "googlemaps": "^1.12.0",
+    "vue": "^2.6.11",
+    "vue-meta": "^2.4.0",
+    "vue-router": "^3.2.0",
+    "vuex": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/googlemaps": "^3.43.3",
+    "@vue/cli-plugin-babel": "^4.5.12",
+    "@vue/cli-plugin-eslint": "^4.5.12",
+    "@vue/cli-plugin-router": "^4.5.12",
+    "@vue/cli-plugin-vuex": "^4.5.12",
+    "@vue/cli-service": "^4.5.12",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^6.7.2",
+    "eslint-plugin-vue": "^6.2.2",
+    "release-it": "^14.6.2",
+    "sass": "^1.32.12",
+    "sass-loader": "^8.0.2",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ],
+  "release-it": {
+    "github": {
+      "release": true
+    }
+  }
+}
