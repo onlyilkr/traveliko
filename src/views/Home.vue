@@ -18,7 +18,8 @@
     <b-row>
       <b-col>
         <b-navbar type="light" variant="light">
-            <b-row align-h="between" class="full-available">
+          <b-col>
+          <b-row align-h="between" class="full-available">
               <b-col cols="6"  :class="isUserInsideRoom ? 'col-sm-4' : 'col-sm-6' ">
               <b-nav-form @submit.stop.prevent="searchUserLocation">
                 <b-form-input size="md" :state="addressValidation" class="mr-sm-2" placeholder="i.e: Turkey Istanbul Eminonu" v-model="inputModel.address" required></b-form-input>
@@ -41,6 +42,8 @@
               </b-nav-form>
             </b-col>
             </b-row>
+          </b-col>
+            
       </b-navbar>
       </b-col>
     </b-row>
