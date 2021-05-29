@@ -55,14 +55,6 @@ The application basically allows you to travel through a specific address or by 
     npm run serve
     ```
 
-
-
-## Release History
-
-
-* 0.1.0
-    * Repository shared public on Github
-
 ## Meta
 ### İlker Güldalı
 
