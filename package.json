@@ -6,7 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "release": "release-it"
+    "release": "dotenv release-it"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.11.4",
@@ -28,6 +28,7 @@
     "@vue/cli-plugin-vuex": "^4.5.12",
     "@vue/cli-service": "^4.5.12",
     "babel-eslint": "^10.1.0",
+    "dotenv-cli": "^4.0.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
     "release-it": "^14.7.0",
