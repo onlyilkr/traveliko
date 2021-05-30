@@ -69,6 +69,14 @@
       </ul>
      </div>
    </Modal>
+
+   <b-modal id="modal-username" ref="modal-username" title="Submit Your Name" @ok="userNameHandleOk">
+      <form ref="userNameForm" @submit.stop.prevent="userNameHandleSubmit">
+        <b-form-group label="Name" label-for="userName-input" invalid-feedback="Name is required" :state="modal.userNameState">
+          <b-form-input id="userName-input" v-model="inputModel.userName" :state="modal.userNameState" required></b-form-input>
+        </b-form-group>
+      </form>
+   </b-modal>
   </div>
 </template>
 
@@ -78,7 +86,7 @@ import { google }  from "googlemaps";
 import { Loader } from "@googlemaps/js-api-loader";
 import Modal from "@/components/Modal.vue"
 import thumbnailImage from "@/assets/thumbnail.jpg"
-import helper from "../helper"
+import helper, {RoomType} from "../helper"
 
 let panoramaInstance;
 let markerInstance;
@@ -117,15 +125,19 @@ export default {
       modal:{
         content:null,
         isActive:false,
-        type:null
+        type:null,
+        userNameState: null
       },
       loader: null,
       panoramaView: null,
       inputModel: {
         address: "Ankara Kurtuluş Park",
         roomId: null,
+        userName: null,
       },
       isDBUpdate: false,
+      isUserInsideRoom: false,
+      roomType: null,
       streetViewModel: {
         roomId: null,
         lastRequestUid: null,
@@ -140,6 +152,7 @@ export default {
           pitch: 0,
         },
         activeUser: 1,
+        userList:[],
       },
       resultModel: {
         lat: null,
@@ -159,8 +172,8 @@ export default {
           pitch: null,
         },
         activeUser: null,
+        userList:[]
       },
-      isUserInsideRoom: false,
       config: {
         overlay:{
           show:false
@@ -236,6 +249,38 @@ export default {
     }
   },
   methods: {
+    checkUserNameFormValidity() {
+        const valid = this.$refs.userNameForm.checkValidity()
+        this.modal.userNameState = valid
+        return valid
+    },
+    userNameHandleOk(bvModalEvt) {
+        bvModalEvt.preventDefault()
+        this.userNameHandleSubmit()
+    },
+    userNameHandleSubmit() {
+        if (!this.checkUserNameFormValidity()) {
+          return
+        }
+        localStorage.setItem("traveliko-username",this.inputModel.userName)
+        this.streetViewModel.userList.push({
+          userName: this.inputModel.userName,
+          isMoveAllowed: true
+        });
+
+        this.$nextTick(() => {
+          this.$bvModal.hide('modal-username')
+        })
+
+        switch(this.roomType){
+          case RoomType.CREATE_ROOM : 
+            this.goToStreetView();
+            break;
+          case RoomType.JOIN_ROOM :
+            this.joinRoom();
+            break;
+        }
+    },
     showAboutModal(){
       this.modal.content = 'Hello there! I am İlker Güldalı A.K.A. "İKO" \n\nThere are 2 important points in the creation of this project. The first is because we could not go outside "together" with our friends during the covid-19 pandemic. The other was that we were looking for a rental house for my friend in Istanbul, Turkey, but we could not walk around the streets "together". For these reasons, I made such a sweet project 🙂.\n\nI hope you enjoyed this "Traveliko" app. If you want to contribute to this open source project, you can access the necessary information on the Github page.\n\nTake care of yourself! Have fun.🎉\n\nLast words...\nYou can buy me a cup of coffee by pressing the button below to support the creation of different projects like this 😊'
       this.modal.type = 'About';
@@ -298,10 +343,15 @@ export default {
           this.isDBUpdate = true;
           this.streetViewModel.lastRequestUid = helper.createGuid();
           this.streetViewModel.activeUser = snapshot.val().activeUser + 1;
+          this.streetViewModel.userList.push({
+            userName: this.inputModel.userName,
+            isMoveAllowed: true
+          });
           room.update(
             {
             activeUser: this.streetViewModel.activeUser,
-            lastRequestUid: this.streetViewModel.lastRequestUid
+            lastRequestUid: this.streetViewModel.lastRequestUid,
+            userList: this.streetViewModel.userList
             },
             (error) => {
             if (error) {
@@ -325,12 +375,25 @@ export default {
       this.data.roomId = this.streetViewModel.roomId;
       this.data.timestamp = this.streetViewModel.timestamp;
       this.data.lastRequestUid = this.streetViewModel.lastRequestUid;
+      this.data.userList = this.streetViewModel.userList;
+    },
+    showUserNameModal(){
+      this.$nextTick(() => {
+      this.$bvModal.show('modal-username');
+        if(localStorage.getItem("traveliko-username") != null){
+        this.inputModel.userName = localStorage.getItem("traveliko-username");
+        }
+      })
     },
     goToStreetView: function () {
       this.showMapsOverlay(true);
       console.debug("goToStreetView ~ event triggered");
 
-      this.getPanorama()
+      if(!this.modal.userNameState){
+        this.roomType = RoomType.CREATE_ROOM;
+        this.showUserNameModal();
+      }else{
+        this.getPanorama()
         .then((data)=> {
           if (!this.isUserInsideRoom) {
           console.debug("goToStreetView ~ Continue with create room.");
@@ -340,6 +403,7 @@ export default {
           }
           infoWindowInstance.setContent(this.getInfoWindow);
         }).catch(this.callToast);
+      }
       this.showMapsOverlay(false);
     },
     callToast(alert){
@@ -470,6 +534,11 @@ export default {
       room.once("value", snapshot => {
         var roomValue = snapshot.val();
         if(roomValue !== null){
+          if(!this.modal.userNameState){
+            this.roomType = RoomType.JOIN_ROOM;
+            this.showUserNameModal()
+            return;
+          }
           this.streetViewModel = roomValue;
           console.debug("joinRoom ~ Signed room info: " + JSON.stringify(this.streetViewModel));
 
@@ -478,6 +547,7 @@ export default {
             this.setStreetViewMode(true);
             this.isUserInsideRoom = true;
             this.increaseRoomUserCount();
+            this.updateDataStreetViewData();
 
             infoWindowInstance.setContent(this.getInfoWindow);
           }).catch(this.callToast);
@@ -565,6 +635,7 @@ export default {
       this.streetViewModel.pov.heading= 265;
       this.streetViewModel.pov.pitch= 0;
       this.streetViewModel.activeUser= 1;
+      this.streetViewModel.userList= [];
       this.resultModel.lat= null;
       this.resultModel.lng= null;
       this.data.roomId= null;
@@ -576,7 +647,9 @@ export default {
       this.data.pov.heading= null;
       this.data.pov.pitch= null;
       this.data.activeUser= null;
+      this.data.userList= [];
       this.isUserInsideRoom = false;
+      this.modal.userNameState = null;
       this.setStreetViewMode(false);
     },
     exitRoom(){
@@ -595,7 +668,8 @@ export default {
           if (data.activeUser > 1) {
             roomRef.update({
               activeUser : data.activeUser - 1,
-              lastRequestUid : helper.createGuid()
+              lastRequestUid : helper.createGuid(),
+              userList : data.userList.filter(item => item.userName != this.inputModel.userName)
             },(error) => {
             if (error) {
               console.error("checkRoomUserCount ~ Active User Count Didn't Reduced. Error" + error.toString());
