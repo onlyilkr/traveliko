@@ -11,6 +11,8 @@
 
 The application basically allows you to travel through a specific address or by opening the street view from where the user left the pin on the map. When the user switches to the street view, a room is set up and with the room number created, different users act in the same location instantly. Thus, more than one user can stroll on the same street.
 
+Website: https://traveliko.vercel.app/
+
 ## Installation & Development Setup
 
 1. Clone Repository
